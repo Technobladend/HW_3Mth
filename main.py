@@ -2,10 +2,10 @@ from aiogram import types
 import logging
 from config import dp, bot
 from aiogram.utils import executor
-from handlers import commands, echo
+from handlers import commands, echo, game
 
 commands.register_commands(dp)
-
+game.register_quiz(dp)
 echo.register_echo(dp)
 
 
