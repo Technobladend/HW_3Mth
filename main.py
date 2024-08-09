@@ -1,8 +1,8 @@
-from aiogram import types
+# from aiogram import types
 import logging
 from config import dp, bot
 from aiogram.utils import executor
-from handlers import commands, echo, game
+from handlers import commands, echo, game, FSM_reg
 from db import db_main
 
 admin = [668334970]
@@ -21,6 +21,7 @@ async def on_shutdown(_):
 
 commands.register_commands(dp)
 game.register_quiz(dp)
+FSM_reg.register_fsm_store(dp)
 echo.register_echo(dp)
 
 
