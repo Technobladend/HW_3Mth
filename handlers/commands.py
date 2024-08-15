@@ -51,7 +51,7 @@ async def game_dice(message: types.Message):
     value1 = dice_1.dice.value
     time.sleep(3)
 
-    dice_2 = await bot.send_dice(message.from_user.id, emoji=dice_1)
+    dice_2 = await bot.send_dice(message.from_user.id, emoji=random.choice(dices))
     value2 = dice_2.dice.value
     time.sleep(5)
 
