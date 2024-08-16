@@ -22,6 +22,8 @@ async def sql_create_store():
     if db:
         print("1ая часть подключена")
     cursor.execute(quaries.CREATE_TABLE_PRODUCTS)
+    cursor.execute(quaries.CREATE_TABLE_PRODUCT_DETAILS)
+    cursor.execute(quaries.CREATE_TABLE_COLLECTION_PRODUCTS)
     db.commit()
 
 
@@ -37,13 +39,6 @@ async def sql_insert_products(name, size, price, product_id, photo):
     db.commit()
 
 
-async def sql_create_product_details():
-    if db:
-        print("2ая часть подключена")
-    cursor.execute(quaries.CREATE_TABLE_PRODUCT_DETAILS)
-    db.commit()
-
-
 async def sql_insert_product_details(id_product, category, info_product):
     cursor.execute(quaries.INSERT_PRODUCT_DEATILS, (
         id_product,
@@ -51,4 +46,12 @@ async def sql_insert_product_details(id_product, category, info_product):
         info_product
     )
                    )
+    db.commit()
+
+
+async def sql_insert_collection_products(product_id, collection_product):
+    cursor.execute(quaries.INSERT_COLLECTION_PRODUCTS, (
+        product_id,
+        collection_product
+    ))
     db.commit()

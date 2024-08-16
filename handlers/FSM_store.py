@@ -13,6 +13,7 @@ class FSM_store(StatesGroup):
     id_product = State()
     category_product = State()
     info_product = State()
+    collection_products = State()
     photo_product = State()
     submit = State()
 
@@ -68,6 +69,14 @@ async def load_info_product(message: types.Message, state: FSMContext):
         data_store['info_product'] = message.text
 
     await FSM_store.next()
+    await message.answer(text="Укажите коллекцию:")
+
+
+async def load_collection_products(message: types.Message, state: FSMContext):
+    async with state.proxy() as data_store:
+        data_store['collection_products'] = message.text
+
+    await FSM_store.next()
     await message.answer(text="Отправьте фото товара:")
 
 
@@ -81,7 +90,9 @@ async def load_photo(message: types.Message, state: FSMContext):
                                        f"Цена - {data_store['price_product']}\n"
                                        f"Артикул - {data_store['id_product']}\n"
                                        f"Категория - {data_store['category_product']}\n"
-                                       f"Описание товара - {data_store['info_product']}",
+                                       f"Описание товара - {data_store['info_product']}\n"
+                                       f"Коллекция - {data_store['collection_products']}\n"
+                                       f"Верны ли данные?",
                                reply_markup=buttons.yes_no)
     await FSM_store.next()
 
@@ -99,13 +110,16 @@ async def submit(message: types.Message, state: FSMContext):
                 product_id=data_store['id_product'],
                 photo=data_store['photo']
             )
-            await db_main.sql_create_product_details()
             await db_main.sql_insert_product_details(
 
                 id_product=data_store['id_product'],
                 category=data_store['category_product'],
                 info_product=data_store['info_product']
 
+            )
+            await db_main.sql_insert_collection_products(
+                product_id=data_store['id_product'],
+                collection_product=data_store['collection_products']
             )
 
         await message.answer(text='Ваши данные сохранены!', reply_markup=kb)
@@ -133,6 +147,6 @@ def store_fsm(dp: Dispatcher):
     dp.register_message_handler(load_id_product, state=FSM_store.id_product)
     dp.register_message_handler(load_category_product, state=FSM_store.category_product)
     dp.register_message_handler(load_info_product, state=FSM_store.info_product)
+    dp.register_message_handler(load_collection_products, state=FSM_store.collection_products)
     dp.register_message_handler(load_photo, state=FSM_store.photo_product, content_types=['photo'])
     dp.register_message_handler(submit, state=FSM_store.submit)
-

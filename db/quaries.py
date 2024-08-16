@@ -43,6 +43,17 @@ VALUES (?, ?, ?)
 """
 
 
+CREATE_TABLE_COLLECTION_PRODUCTS = """
+CREATE TABLE IF NOT EXISTS collection_products
+(id INTEGER PRIMARY KEY AUTOINCREMENT,
+product_id VARCHAR (225),
+collection_product VARCHAR (255)
+)
+"""
 
 
+INSERT_COLLECTION_PRODUCTS = """
+INSERT INTO collection_products(product_id, collection_product)
+VALUES(?, ?)
+"""
 
