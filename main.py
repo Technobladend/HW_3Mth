@@ -1,11 +1,9 @@
 # from aiogram import types
 import logging
-from config import dp, bot
+from config import dp, bot, admin
 from aiogram.utils import executor
-from handlers import commands, echo, game, FSM_reg, FSM_store, send_products
+from handlers import commands, echo, game, FSM_reg, FSM_store, send_products, webapp, pin_message, admin_bot
 from db import db_main
-
-admin = [668334970]
 
 
 async def on_startup(_):
@@ -24,6 +22,9 @@ game.register_quiz(dp)
 FSM_reg.register_fsm_store(dp)
 FSM_store.store_fsm(dp)
 send_products.register_send_products_handler(dp)
+webapp.register_webapp(dp)
+pin_message.register_pin(dp)
+admin_bot.register_admin(dp)
 echo.register_echo(dp)
 
 
