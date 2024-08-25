@@ -1,96 +1,151 @@
+import re
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
-
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import buttons
+from Google_sheets.sheets import update_google_sheet_register, extract_telegram_ids, open_sheet
 
 
-class FSM_store(StatesGroup):
-    product_name = State()
-    size = State()
-    category = State()
-    price = State()
-    product_photo = State()
-    answer_from_user = State()
+class FSM_reg(StatesGroup):
+    telegram_id = State()
+    full_name = State()
+    age = State()
+    email = State()
+    gender = State()
+    phone = State()
+    photo = State()
+    submit = State()
 
 
-async def fsm_start(message: types.Message):
-    await message.answer(text="Здравствуйте!\n"
-                              "Укажите название товара:")
-    await FSM_store.product_name.set()
+async def fsm_start(message: types.Message, state: FSMContext):
+    row = open_sheet()
+    telegram_id = extract_telegram_ids(row)
+    if str(message.from_user.id) in telegram_id:
+        await message.answer(text='Вы уже зарегестрированны)')
+        await state.finish()
+        return
+    else:
+        await message.answer(text="Привет!\n"
+                                  "Давай знакомиться, как тебя зовут?\n"
+                                  "\nЧто бы воспользоваться командами, нажми на 'Отмена'", reply_markup=buttons.cancel)
+    await FSM_reg.telegram_id.set()
 
 
-async def load_product(message: types.Message, state: FSMContext):
+async def telegram_id_check(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['product_name'] = message.text
+        data['telegram_id'] = message.from_user.id
 
-        await FSM_store.next()
-        await message.answer(text="Укажите размер товара:", reply_markup=buttons.size_variations)
+    await FSM_reg.next()
+    await message.answer(text='Напиши свое ФИО:')
 
 
-async def load_size(message: types.Message, state: FSMContext):
+async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['size'] = message.text
+        data['full_name'] = message.text
 
-        kb = types.ReplyKeyboardRemove()
-
-        await FSM_store.next()
-        await message.answer(text="Укажите категорию товара:", reply_markup=kb)
+    await FSM_reg.next()
+    await message.answer(text="Укажи свой возраст:")
 
 
-async def load_category(message: types.Message, state: FSMContext):
+async def load_age(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['category'] = message.text
+        data['age'] = message.text
 
-        await FSM_store.next()
-        await message.answer(text="Введите стоимость товара:")
+    await FSM_reg.next()
+    await message.answer(text="Укажи свою почту:")
 
 
-async def load_price(message: types.Message, state: FSMContext):
+async def load_email(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['price'] = message.text
+        email = message.text.strip()
 
-        await FSM_store.next()
-        await message.answer(text="Отправьте фотографию товара:")
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            await message.answer(text='Некорректный формат электронной почты!')
+            return
+        data['email'] = email
+
+    await FSM_reg.next()
+    await message.answer(text="Укажи свой гендер:")
+
+
+async def load_gender(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['gender'] = message.text
+
+    await FSM_reg.next()
+    await message.answer(text="Отправь свой номер:")
+
+
+async def load_phone(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['phone'] = message.text
+
+    await FSM_reg.next()
+    await message.answer(text="Отправь свою фотку:")
 
 
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['product_photo'] = message.photo[-1].file_id
+        data['photo'] = message.photo[-1].file_id
 
-        await message.answer_photo(photo=data['product_photo'],
-                                   caption=f"Название товара - {data['product_name']}\n"
-                                           f"Размер - {data['size']}\n"
-                                           f"Категория - {data['category']}\n"
-                                           f"Цена товара - {data['price']}\n"
-                                   )
+    await message.answer_photo(photo=data['photo'],
+                               caption=f"Ваше ФИО - {data['full_name']}\n"
+                               f"Возраст - {data['age']}\n"
+                               f"Почта - {data['email']}\n"
+                               f"Пол - {data['gender']}\n"
+                               f"Номер телефона - {data['phone']}\n"
+                               f"Верны ли данные?",
+                               reply_markup=buttons.yes_no
+                               )
+    await FSM_reg.next()
 
-        await FSM_store.next()
-        await message.answer(text='Верны ли данные?', reply_markup=buttons.yes_no)
 
-
-async def answer_from_user(message: types.Message, state: FSMContext):
-
-    async with state.proxy() as data:
-        data['answer_from_user'] = message.text
+async def submit(message: types.Message, state: FSMContext):
+    if message.text == 'Да':
         kb = types.ReplyKeyboardRemove()
-    if data['answer_from_user'] == 'Да':
 
-        await message.answer(text='Данные сохранены', reply_markup=kb)
+        async with state.proxy() as data:
+            name = data['full_name']
+            age = data['age']
+            email = data['email']
+            gender = data['gender']
+            phone = data['phone']
+            telegram_id = data['telegram_id']
+
+            update_google_sheet_register(name=name,
+                                         age=age,
+                                         email=email,
+                                         gender=gender,
+                                         phone=phone,
+                                         telegram_id=telegram_id)
+
+        await message.answer(text='Данные сохранены!', reply_markup=kb)
         await state.finish()
-    elif data['answer_from_user'] == 'Нет':
-        await message.answer(text='Отменено', reply_markup=kb)
+
+    else:
+        await message.answer(text='Регистрация отменена')
         await state.finish()
 
 
-def register_fsm_store(dp: Dispatcher):
-    dp.register_message_handler(fsm_start, commands=['store'])
-    dp.register_message_handler(load_product, state=FSM_store.product_name)
-    dp.register_message_handler(load_size, state=FSM_store.size)
-    dp.register_message_handler(load_category, state=FSM_store.category)
-    dp.register_message_handler(load_price, state=FSM_store.price)
-    dp.register_message_handler(load_photo, state=FSM_store.product_photo,
+async def cancel_fsm(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is not None:
+        await state.finish()
+        await message.answer(text='Отменено!')
+
+
+def register_fsm(dp: Dispatcher):
+    dp.register_message_handler(cancel_fsm, Text(equals='Отмена',
+                                                 ignore_case=True
+                                                 ), state="*")
+    dp.register_message_handler(fsm_start, commands=['registration'])
+    dp.register_message_handler(telegram_id_check, state=FSM_reg.telegram_id)
+    dp.register_message_handler(load_name, state=FSM_reg.full_name)
+    dp.register_message_handler(load_age, state=FSM_reg.age)
+    dp.register_message_handler(load_email, state=FSM_reg.email)
+    dp.register_message_handler(load_gender, state=FSM_reg.gender)
+    dp.register_message_handler(load_phone, state=FSM_reg.phone)
+    dp.register_message_handler(load_photo, state=FSM_reg.photo,
                                 content_types=['photo'])
-    dp.register_message_handler(load_price, state=FSM_store.price)
-    dp.register_message_handler(answer_from_user, state=FSM_store.answer_from_user)
+    dp.register_message_handler(submit, state=FSM_reg.submit)

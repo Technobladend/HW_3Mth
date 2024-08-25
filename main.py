@@ -19,7 +19,7 @@ async def on_shutdown(_):
 
 commands.register_commands(dp)
 game.register_quiz(dp)
-FSM_reg.register_fsm_store(dp)
+FSM_reg.register_fsm(dp)
 FSM_store.store_fsm(dp)
 send_products.register_send_products_handler(dp)
 webapp.register_webapp(dp)
