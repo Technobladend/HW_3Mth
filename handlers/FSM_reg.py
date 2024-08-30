@@ -3,12 +3,11 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-import buttons
-from Google_sheets.sheets import update_google_sheet_register, extract_telegram_ids, open_sheet
+import homework_3month.buttons as buttons
+from homework_3month.Google_sheets.sheets import update_google_sheet_register, open_sheet
 
 
 class FSM_reg(StatesGroup):
-    telegram_id = State()
     full_name = State()
     age = State()
     email = State()
@@ -20,24 +19,13 @@ class FSM_reg(StatesGroup):
 
 async def fsm_start(message: types.Message, state: FSMContext):
     row = open_sheet()
-    telegram_id = extract_telegram_ids(row)
-    if str(message.from_user.id) in telegram_id:
-        await message.answer(text='Вы уже зарегестрированны)')
-        await state.finish()
-        return
-    else:
-        await message.answer(text="Привет!\n"
-                                  "Давай знакомиться, как тебя зовут?\n"
-                                  "\nЧто бы воспользоваться командами, нажми на 'Отмена'", reply_markup=buttons.cancel)
-    await FSM_reg.telegram_id.set()
 
-
-async def telegram_id_check(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['telegram_id'] = message.from_user.id
-
-    await FSM_reg.next()
-    await message.answer(text='Напиши свое ФИО:')
+    await message.answer(text="Привет!\n"
+                              "Давай знакомиться, как тебя зовут?\n"
+                              "\nЧто бы воспользоваться командами, нажми на 'Отмена' \n\n"
+                              "Укажите своё ФИО:", reply_markup=buttons.cancel)
+        
+    await FSM_reg.full_name.set()
 
 
 async def load_name(message: types.Message, state: FSMContext):
@@ -111,14 +99,12 @@ async def submit(message: types.Message, state: FSMContext):
             email = data['email']
             gender = data['gender']
             phone = data['phone']
-            telegram_id = data['telegram_id']
 
             update_google_sheet_register(name=name,
                                          age=age,
                                          email=email,
                                          gender=gender,
-                                         phone=phone,
-                                         telegram_id=telegram_id)
+                                         phone=phone)
 
         await message.answer(text='Данные сохранены!', reply_markup=kb)
         await state.finish()
@@ -139,8 +125,7 @@ def register_fsm(dp: Dispatcher):
     dp.register_message_handler(cancel_fsm, Text(equals='Отмена',
                                                  ignore_case=True
                                                  ), state="*")
-    dp.register_message_handler(fsm_start, commands=['registration'])
-    dp.register_message_handler(telegram_id_check, state=FSM_reg.telegram_id)
+    dp.register_message_handler(fsm_start, commands=['reg'])
     dp.register_message_handler(load_name, state=FSM_reg.full_name)
     dp.register_message_handler(load_age, state=FSM_reg.age)
     dp.register_message_handler(load_email, state=FSM_reg.email)

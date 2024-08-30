@@ -1,5 +1,5 @@
 from aiogram import types, Dispatcher
-from config import bot
+from homework_3month.config import bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 

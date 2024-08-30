@@ -1,5 +1,5 @@
 import sqlite3 as sq
-from db import quaries
+from homework_3month.db import quaries
 db = sq.connect('db/db.sqlite3')
 cursor = db.cursor()
 
@@ -11,9 +11,9 @@ async def sql_create():
     db.commit()
 
 
-async def sql_insert_registration(telegram_id, firstname):
+async def sql_insert_registration(firstname):
     cursor.execute(quaries.INSERT_INTO_TABLE_REGISTRATION, (
-        telegram_id, firstname)
+        firstname)
                    )
     db.commit()
 

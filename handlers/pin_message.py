@@ -1,5 +1,5 @@
 from aiogram import types, Dispatcher
-from config import bot, admin
+from homework_3month.config import bot, admin
 
 
 async def pin_message(message: types.Message):

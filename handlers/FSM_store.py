@@ -2,8 +2,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types, Dispatcher
-import buttons
-from db import db_main
+import homework_3month.buttons as buttons
+from homework_3month.db import db_main
 
 
 class FSM_store(StatesGroup):

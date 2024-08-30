@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import dp
+from homework_3month.config import dp
 
 
 async def webapp_inline_button(message: types.Message):

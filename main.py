@@ -2,8 +2,8 @@
 import logging
 from config import dp, bot, admin
 from aiogram.utils import executor
-from handlers import commands, echo, game, FSM_reg, FSM_store, send_products, webapp, pin_message, admin_bot
-from db import db_main
+from homework_3month.handlers import commands, echo, game, FSM_reg, FSM_store, send_products, webapp, pin_message, admin_bot
+from homework_3month.db import db_main
 
 
 async def on_startup(_):
@@ -18,13 +18,13 @@ async def on_shutdown(_):
 
 
 commands.register_commands(dp)
-game.register_quiz(dp)
+# game.register_quiz(dp)
 FSM_reg.register_fsm(dp)
 FSM_store.store_fsm(dp)
-send_products.register_send_products_handler(dp)
-webapp.register_webapp(dp)
-pin_message.register_pin(dp)
-admin_bot.register_admin(dp)
+# send_products.register_send_products_handler(dp)
+# webapp.register_webapp(dp)
+# pin_message.register_pin(dp)
+# admin_bot.register_admin(dp)
 echo.register_echo(dp)
 
 
